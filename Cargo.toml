@@ -4,3 +4,4 @@ version = "0.1.0"
 edition = "2024" # The edition of Rust to use for this package. The specific compiler version is determined by the edition, but you can also specify a minimum compiler version in the `rust-version` field.
 
 [dependencies]
+rand = "0.10.2" # The version of the `rand` crate to use for generating random numbers.
