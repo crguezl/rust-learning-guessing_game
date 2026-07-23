@@ -4,12 +4,12 @@ use std::io;
 use rand::prelude::*;
 
 fn main() {
-    println!("Guess the number!");
+    println!(r"\tGuess the number\n!"); // raw string literal
 
     // let secret_number = thread_rng().gen_range(1..=100);
     let secret_number = rand::rng().random_range(1..=100);
 
-    println!("The secret number is: {secret_number}");
+    println!(r#"The secret number is: "{secret_number}""#); // raw string literal with interpolation. No need to escape the double quotes!.
 
     let mut guess = String::new();
 
@@ -19,7 +19,7 @@ fn main() {
 
     println!("Please, input your guess.");
 
-    /* // Correct but a mtach statement is better
+    /* // Correct but a match statement is better
     let num_char = io::stdin()
         .read_line(&mut guess)
         .expect("Failed to read line.");
