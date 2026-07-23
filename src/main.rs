@@ -1,7 +1,16 @@
 use std::io;
+use std::cmp::Ordering;
 
 // use rand::Rng;
 use rand::prelude::*;
+
+fn compare_guess(guess: u32, secret_number: u32) -> &'static str {
+    match guess.cmp(&secret_number) {
+        Ordering::Less => "Too small!",
+        Ordering::Greater => "Too big!",
+        Ordering::Equal => "You win!",
+    }
+}
 
 fn main() {
     println!(r"\tGuess the number\n!"); // raw string literal
@@ -47,7 +56,31 @@ fn main() {
     println!("You guessed: {guess}");
     println!("Number of characters: {:?}",num_char);
 
+
     println!("stack (String): {:p}", &guess);
     println!("heap  (buffer): {:p}", guess.as_ptr());
     println!("len={}, cap={}", guess.len(), guess.capacity());
+
+    println!("Comparing your guess with the secret number...");
+    let guess_number = match guess.trim().parse::<u32>() {
+        Ok(n) => n,
+        Err(_) => {
+            println!("Invalid input. Please enter a valid number.");
+            return;
+        }
+    };
+    let result = compare_guess(guess_number, secret_number);
+    println!("Result: {result}");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_test() {
+        assert_eq!(compare_guess(30, 30), "You win!");
+        assert_eq!(compare_guess(20, 30), "Too small!");
+        assert_eq!(compare_guess(40, 30), "Too big!");
+    }
 }
