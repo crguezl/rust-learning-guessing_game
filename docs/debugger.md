@@ -5,24 +5,6 @@ La forma más práctica de depurar Rust es con 3 niveles:
 2. depurador y 
 3. herramientas de `cargo`.
 
-## Depuración rápida con `println!` o `dbg!`
-- `println!` para mensajes claros.
-- `dbg!(expr)` imprime valor y además archivo/línea.
-- Ejemplo:
-```rust
-dbg!(secret_number);
-dbg!(&guess, guess.len(), guess.capacity());
-```
-
-## Compilar en modo debug y ejecutar
-
-- `cargo run` ya usa perfil `dev` (sin optimizaciones agresivas, con símbolos).
-- Para errores más estrictos:
-```bash
-cargo check
-cargo clippy
-```
-
 ## Depuración paso a paso con breakpoints en VS Code
 
 - Instala `rust-analyzer` y una extensión LLDB (por ejemplo CodeLLDB).
@@ -33,46 +15,6 @@ cargo clippy
   - inspeccionar variables
   - ver stack frames
   - evaluar expresiones
-
-## Alternativa por terminal con LLDB/GDB
-
-- Compila:
-```bash
-cargo build
-```
-- LLDB:
-```bash
-lldb target/debug/guessing_game
-```
-- Dentro de lldb:
-```text
-breakpoint set --name main
-run
-next
-step
-frame variable
-```
-
-## Cuando hay panics
-
-- Para ver backtrace:
-```bash
-RUST_BACKTRACE=1 cargo run
-```
-- Backtrace completo:
-```bash
-RUST_BACKTRACE=full cargo run
-```
-
-## Para bugs de ownership/borrowing
-
-- `cargo check` suele dar el diagnóstico principal.
-- `rust-analyzer` te marca errores al vuelo.
-- `dbg!` ayuda a seguir flujo y estados intermedios sin cambiar mucho código.
-
-En tu programa actual, un primer paso útil sería poner breakpoint justo antes y después de `read_line` en main.rs, y observar `guess.len()`, `guess.capacity()` y `guess.as_ptr()` para ver cuándo cambia el buffer.
-
-Si quieres, te preparo una configuración mínima de VS Code (`launch.json`) para depurar este proyecto con un clic.
 
 ## .vscode/launch.json
 
@@ -186,4 +128,63 @@ Esa es la vía más robusta hoy para String en Rust durante debug.
 4. Introduce texto cuando lo pida.
 5. Al parar en main.rs, vuelve a ejecutar frame variable guess.
 6. Compara con la salida impresa de len/cap y direcciones.
+
+
+## Depuración rápida con `println!` o `dbg!`
+- `println!` para mensajes claros.
+- `dbg!(expr)` imprime valor y además archivo/línea.
+- Ejemplo:
+```rust
+dbg!(secret_number);
+dbg!(&guess, guess.len(), guess.capacity());
+```
+
+## Compilar en modo debug y ejecutar
+
+- `cargo run` ya usa perfil `dev` (sin optimizaciones agresivas, con símbolos).
+- Para errores más estrictos:
+```bash
+cargo check
+cargo clippy
+```
+
+## Alternativa por terminal con LLDB/GDB
+
+- Compila:
+```bash
+cargo build
+```
+- LLDB:
+```bash
+lldb target/debug/guessing_game
+```
+- Dentro de lldb:
+```text
+breakpoint set --name main
+run
+next
+step
+frame variable
+```
+
+## Cuando hay panics
+
+- Para ver backtrace:
+```bash
+RUST_BACKTRACE=1 cargo run
+```
+- Backtrace completo:
+```bash
+RUST_BACKTRACE=full cargo run
+```
+
+## Para bugs de ownership/borrowing
+
+- `cargo check` suele dar el diagnóstico principal.
+- `rust-analyzer` te marca errores al vuelo.
+- `dbg!` ayuda a seguir flujo y estados intermedios sin cambiar mucho código.
+
+En tu programa actual, un primer paso útil sería poner breakpoint justo antes y después de `read_line` en main.rs, y observar `guess.len()`, `guess.capacity()` y `guess.as_ptr()` para ver cuándo cambia el buffer.
+
+Si quieres, te preparo una configuración mínima de VS Code (`launch.json`) para depurar este proyecto con un clic.
 
