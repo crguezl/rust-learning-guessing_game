@@ -1,5 +1,5 @@
-use std::io;
 use std::cmp::Ordering;
+use std::io;
 
 // use rand::Rng;
 use rand::prelude::*;
@@ -12,65 +12,82 @@ fn compare_guess(guess: u32, secret_number: u32) -> &'static str {
     }
 }
 
+// A macro starts with the keyword `macro_rules!` followed by the name of the macro and a block
+// containing the macro definition. The macro definition consists of one or more rules, 
+// each of which specifies a pattern and a corresponding expansion. 
+// The pattern is matched against the input provided to the macro, and if it matches, 
+// the corresponding expansion is generated.
+macro_rules! print_guess_info {
+    ($guess:expr) => {{
+        println!("  guess: stack (String): {:p}", &$guess);
+        println!("  guess: heap  (buffer): {:p}", $guess.as_ptr());
+        println!("  guess: len={}, cap={}", $guess.len(), $guess.capacity());
+    }};
+}
+
 fn main() {
     println!(r"\tGuess the number\n!"); // raw string literal
 
-    // let secret_number = thread_rng().gen_range(1..=100);
+    // 1..=100 is a range that includes both 1 and 100
     let secret_number = rand::rng().random_range(1..=100);
+    // raw string literal with interpolation. No need to escape the double quotes!.
+    println!(r#"  The secret number is: "{secret_number}""#);
 
-    println!(r#"The secret number is: "{secret_number}""#); // raw string literal with interpolation. No need to escape the double quotes!.
+    loop {
+        let mut guess = String::new();
 
-    let mut guess = String::new();
+        print_guess_info!(guess);
 
-    println!("stack (String): {:p}", &guess);
-    println!("heap  (buffer): {:p}", guess.as_ptr());
-    println!("len={}, cap={}", guess.len(), guess.capacity());
+        println!("Please, input your guess.");
 
-    println!("Please, input your guess.");
+        /* // Correct but a match statement is better
+        let num_char = io::stdin()
+            .read_line(&mut guess)
+            .expect("Failed to read line.");
+        */
 
-    /* // Correct but a match statement is better
-    let num_char = io::stdin()
-        .read_line(&mut guess)
-        .expect("Failed to read line.");
-    */
+        /*
+        // Incorrect: num_char is a Result type, not an integer.
+        let num_char = std::io::stdin()
+            .read_line(&mut guess);
+        */
 
-    /* 
-    // Incorrect: num_char is a Result type, not an integer. 
-    let num_char = std::io::stdin()
-        .read_line(&mut guess);
-    */
+        // match example
+        let num_char = match io::stdin().read_line(&mut guess) {
+            Ok(0 | 1) => {
+                println!("No valid choice provided. Exiting...");
+                return;
+            }
+            Ok(n) => n,
+            Err(error) => {
+                eprintln!("Error when reading line: {error}");
+                return;
+            }
+        };
+        // guess.trim return a &str, so we need to convert it to String
+        guess = guess.trim().to_string();
 
-    // match example
-    let num_char = match io::stdin().read_line(&mut guess) {
-        Ok(0 | 1) => {
-            println!("No valid choice provided. Exiting...");
-            return;
+        println!("  You guessed: {guess}");
+        println!("  Number of characters: {:?}", num_char);
+
+        print_guess_info!(guess);
+
+        println!("Comparing your guess {guess} with the secret number {secret_number} ...");
+        // We can declare a variable with the same name as a previous variable, shadowing it.
+        //This is useful when we want to transform a value but keep the same name.
+        let guess = match guess.parse::<u32>() {
+            Ok(n) => n,
+            Err(_) => {
+                println!("Invalid input. Please enter a valid number.");
+                return;
+            }
+        };
+        let result = compare_guess(guess, secret_number);
+        println!("Result: {result}");
+        if result == "You win!" {
+            break;  
         }
-        Ok(n) => n,
-        Err(error) => {
-            eprintln!("Error when reading line: {error}");
-            return;
-        }
-    };
-
-    println!("You guessed: {guess}");
-    println!("Number of characters: {:?}",num_char);
-
-
-    println!("stack (String): {:p}", &guess);
-    println!("heap  (buffer): {:p}", guess.as_ptr());
-    println!("len={}, cap={}", guess.len(), guess.capacity());
-
-    println!("Comparing your guess with the secret number...");
-    let guess_number = match guess.trim().parse::<u32>() {
-        Ok(n) => n,
-        Err(_) => {
-            println!("Invalid input. Please enter a valid number.");
-            return;
-        }
-    };
-    let result = compare_guess(guess_number, secret_number);
-    println!("Result: {result}");
+    }
 }
 
 #[cfg(test)]
