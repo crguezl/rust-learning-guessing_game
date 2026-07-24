@@ -1,5 +1,9 @@
 use std::cmp::Ordering;
-use std::io;
+// we are importing the `Write` trait from the `std::io` module to use the `flush` method
+// The `flush` method is used to ensure that any buffered output is written to the 
+// underlying output stream immediately.
+use std::io::{self, Write}; 
+
 
 // use rand::Rng;
 use rand::prelude::*;
@@ -38,7 +42,9 @@ fn main() {
 
         print_guess_info!(guess);
 
-        println!("Please, input your guess.");
+        print!("Please, input your guess: ");
+        // flush stdout to ensure the prompt is printed before reading input
+        io::stdout().flush().unwrap(); 
 
         /* // Correct but a match statement is better
         let num_char = io::stdin()
@@ -79,7 +85,7 @@ fn main() {
             Ok(n) => n,
             Err(_) => {
                 println!("Invalid input. Please enter a valid number.");
-                return;
+                continue;
             }
         };
         let result = compare_guess(guess, secret_number);
