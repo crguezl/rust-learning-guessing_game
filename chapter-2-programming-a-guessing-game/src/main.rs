@@ -8,6 +8,8 @@ use std::io::{self, Write};
 // use rand::Rng;
 use rand::prelude::*;
 
+const DEBUG: bool = false;
+
 fn compare_guess(guess: u32, secret_number: u32) -> &'static str {
     match guess.cmp(&secret_number) {
         Ordering::Less => "Too small!",
@@ -23,20 +25,30 @@ fn compare_guess(guess: u32, secret_number: u32) -> &'static str {
 // the corresponding expansion is generated.
 macro_rules! print_guess_info {
     ($guess:expr) => {{
-        println!("  guess: stack (String): {:p}", &$guess);
-        println!("  guess: heap  (buffer): {:p}", $guess.as_ptr());
-        println!("  guess: len={}, cap={}", $guess.len(), $guess.capacity());
+        if DEBUG {
+            println!("  guess: stack (String): {:p}", &$guess);
+            println!("  guess: heap  (buffer): {:p}", $guess.as_ptr());
+            println!("  guess: len={}, cap={}", $guess.len(), $guess.capacity());
+        }
     }};
 }
 
+macro_rules! println_debug {
+    ($($arg:tt)*) => {
+        if DEBUG {
+            println!($($arg)*);
+        }
+    };
+}
 fn main() {
     println!(r"\tGuess the number\n!"); // raw string literal
 
     // 1..=100 is a range that includes both 1 and 100
     let secret_number = rand::rng().random_range(1..=100);
     // raw string literal with interpolation. No need to escape the double quotes!.
-    println!(r#"  The secret number is: "{secret_number}""#);
+    println_debug!(r#"  The secret number is: "{secret_number}""#);
 
+    let mut attempts = 0;
     loop {
         let mut guess = String::new();
 
@@ -71,26 +83,39 @@ fn main() {
             }
         };
         // guess.trim return a &str, so we need to convert it to String
-        guess = guess.trim().to_string();
+        guess = guess.trim().to_ascii_lowercase();
 
-        println!("  You guessed: {guess}");
-        println!("  Number of characters: {:?}", num_char);
+        println_debug!("  You guessed: {guess}");
+        println_debug!("  Number of characters: {:?}", num_char);
 
         print_guess_info!(guess);
 
-        println!("  Comparing your guess {guess} with the secret number {secret_number} ...");
+        println_debug!("  Comparing your guess {guess} with the secret number {secret_number} ...");
         // We can declare a variable with the same name as a previous variable, shadowing it.
         //This is useful when we want to transform a value but keep the same name.
         let guess = match guess.parse::<u32>() {
             Ok(n) => n,
             Err(_) => {
-                println!("Invalid input. Please enter a valid number.");
+                match guess.as_str() {
+                    "secret" => {
+                        println!("The secret number is {secret_number}.");
+                    }
+                    "exit"|"quit" => {
+                        println!("Exiting the game. The secret number was {secret_number}.");
+                        return;
+                    }
+                    _ => {
+                        println!("Invalid input. Please enter a valid number.");
+                    }
+                }
                 continue;
             }
         };
+        attempts += 1;
         let result = compare_guess(guess, secret_number);
         println!("Result: {result}");
         if result == "You win!" {
+            println!("Congratulations! You guessed the secret number {secret_number} in {attempts} attempts.");
             break;  
         }
     }
