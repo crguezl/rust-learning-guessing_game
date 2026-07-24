@@ -1,87 +1,105 @@
-# Depuración en Rust
+# Debugging in Rust
 
-La forma más práctica de depurar Rust es con 3 niveles: 
-1. impresión, 
-2. depurador y 
-3. herramientas de `cargo`.
+The most practical way to debug Rust is with 3 levels:
 
-## Depuración paso a paso con breakpoints en VS Code
+1. Printing,
 
-- Instala `rust-analyzer` y una extensión LLDB (por ejemplo CodeLLDB).
-- Abre main.rs, haz clic en el margen izquierdo para poner breakpoint.
-- Ejecuta “Run and Debug” y elige configuración LLDB.
-- Puedes:
-  - Step over / into
-  - inspeccionar variables
-  - ver stack frames
-  - evaluar expresiones
+2. Debugger, and
+
+3. Loading tools.
+
+## Step-by-step debugging with breakpoints in VS Code
+
+- Install `rust-analyzer` and an LLDB extension (for example, CodeLLDB).
+
+- Open main.rs, click in the left margin to set a breakpoint.
+
+- Run “Run and Debug” and choose LLDB settings.
+
+- Can: 
+- Step over/into 
+- inspect variables 
+- view stack frames 
+- evaluate expressions
 
 ## .vscode/launch.json
 
 ```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Rust: Debug guessing_game",
-            "type": "lldb",
-            "request": "launch",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin",
-                    "guessing_game"
-                ],
-                "filter": {
-                    "name": "guessing_game",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "sourceLanguages": [
-                "rust"
-            ]
-        },
-        {
-            "name": "Rust: Debug unit tests (guessing_game)",
-            "type": "lldb",
-            "request": "launch",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin",
-                    "guessing_game"
-                ],
-                "filter": {
-                    "name": "guessing_game",
-                    "kind": "bin"
-                }
-            },
-            "cwd": "${workspaceFolder}",
-            "sourceLanguages": [
-                "rust"
-            ]
-        }
-    ]
+{ 
+"version": "0.2.0", 
+"configurations": [ 
+{ 
+"name": "Rust: Debug guessing_game", 
+"type": "lldb", 
+"request": "launch", 
+"post": { 
+"args": [ 
+"build", 
+"--bin", 
+"guessing_game" 
+], 
+"filter": { 
+"name": "guessing_game", 
+"kind": "bin" 
+} 
+}, 
+"args": [], 
+"cwd": "${workspaceFolder}", 
+"sourceLanguages": [ 
+"rust" 
+] 
+}, 
+{ 
+"name": "Rust: Debug unit tests (guessing_game)", 
+"type": "lldb",
+
+"request": "launch",
+
+"cargo": {
+
+"args": [
+
+"test",
+"--no-run",
+"--bin",
+"guessing_game"
+],
+
+"filter": {
+
+"name": "guessing_game",
+"kind": "bin"
+}
+},
+
+"cwd": "${workspaceFolder}",
+
+"sourceLanguages": [
+"rust"
+]
+}
+]
 }
 ```
 
-## Mini Guía de Depuración
+## Mini Debugging Guide
 
+### **Objective**
+View the state of `guess` before and after `read_line`: content, length/capacity printed by the program, and address changes.
 
-### **Objetivo**
-Ver el estado de guess antes y después de read_line: contenido, longitud/capacidad impresas por el programa, y cambios de dirección.
+### **1) Recommended Breakpoints**
+1. Place a breakpoint in `main.rs` for the initial state.
 
-### **1) Breakpoints recomendados**
-1. Coloca un breakpoint en main.rs para el estado inicial.
-2. Coloca otro en main.rs para el estado después de leer.
-3. Inicia Rust: Debug guessing_game con F5.
+2. Place another breakpoint in `main.rs` for the state after reading.
 
-### **2) Qué escribir en la Debug Console (LLDB)**
+` ...
+`````````````
+`````
+3. Start Rust: Debug guessing_game with F5.
 
-Usa estos comandos, que sí funcionan bien con Rust:
+### **2) What to type in the Debug Console (LLDB)**
+
+Use these commands, which work correctly with Rust:
 
 ~~~text
 frame variable guess
@@ -89,13 +107,13 @@ frame variable -R guess
 v guess
 ~~~
 
-Para ver todo el frame actual:
+To see the entire current frame:
 
 ~~~text
 frame variable
 ~~~
 
-Para navegar:
+To navigate:
 
 ~~~text
 n
@@ -104,53 +122,65 @@ c
 bt
 ~~~
 
-Significado rápido:
-1. n: siguiente línea (step over).
-2. s: entrar en llamada (step into).
-3. c: continuar hasta próximo breakpoint.
+Quick meanings:
+1. n: step over.
+
+2. s: step into.
+
+3. c: continue to the next breakpoint.
+
 4. bt: stack trace.
 
-### **3) Por qué falla p guess.len()**
-LLDB no soporta bien evaluar expresiones Rust en muchos casos, y cae a Objective-C++.
-Por eso métodos como len() no se resuelven en consola aunque el programa compile perfecto.
+### **3) Why `p guess.len()` fails**
+LLDB doesn't handle evaluating Rust expressions well in many cases, and falls back to Objective-C++. Therefore, methods like `len()` don't resolve in the console even if the program compiles perfectly.
 
-### **4) Forma fiable de ver len/capacity y punteros**
-Ya la tienes en tu código con prints:
-1. Estado inicial en main.rs.
-2. Estado final en main.rs.
+### **4) Reliable way to view len/capacity and pointers**
+You already have this in your code with `prints`:
+1. Initial state in `main.rs`.
 
-Esa es la vía más robusta hoy para String en Rust durante debug.
+2. Final state in `main.rs`.
 
-### **5) Flujo sugerido de 30 segundos**
-1. F5.
-2. Al parar en main.rs, ejecuta frame variable guess.
-3. n varias veces hasta pasar read_line.
-4. Introduce texto cuando lo pida.
-5. Al parar en main.rs, vuelve a ejecutar frame variable guess.
-6. Compara con la salida impresa de len/cap y direcciones.
+This is the most robust way to view Strings in Rust during debugging.
 
+### **5) Suggested 30-second flow**
+1. Press F5.
 
-## Depuración rápida con `println!` o `dbg!`
-- `println!` para mensajes claros.
-- `dbg!(expr)` imprime valor y además archivo/línea.
-- Ejemplo:
+2. When stopped at `main.rs`, execute `frame variable guess`.
+
+3. Press `n` several times until `read_line` is reached.
+
+4. Enter text when prompted.
+
+5. When stopped at `main.rs`, execute `frame variable guess` again.
+
+6. Compare with the printed output of `len/capacity` and addresses.
+
+## Quick debugging with `println!` or `dbg!`
+- `println!` for clear messages.
+
+- `dbg!(expr)` prints the value and also the file/line.
+
+- Example:
 ```rust
 dbg!(secret_number);
+
 dbg!(&guess, guess.len(), guess.capacity());
-```
 
-## Compilar en modo debug y ejecutar
+``
 
-- `cargo run` ya usa perfil `dev` (sin optimizaciones agresivas, con símbolos).
-- Para errores más estrictos:
+## Compile in debug mode and run
+
+- `cargo run` already uses the `dev` profile (without aggressive optimizations, with symbols).
+
+- For more stringent errors:
 ```bash
 cargo check
 cargo clippy
 ```
 
-## Alternativa por terminal con LLDB/GDB
+## Terminal alternative with LLDB/GDB
 
-- Compila:
+- Compile:
 ```bash
 cargo build
 ```
@@ -158,7 +188,7 @@ cargo build
 ```bash
 lldb target/debug/guessing_game
 ```
-- Dentro de lldb:
+- Inside lldb:
 ```text
 breakpoint set --name main
 run
@@ -167,24 +197,25 @@ step
 frame variable
 ```
 
-## Cuando hay panics
+## When panics occur
 
-- Para ver backtrace:
+- To view backtrace:
 ```bash
 RUST_BACKTRACE=1 cargo run
 ```
-- Backtrace completo:
+- Full backtrace:
 ```bash
 RUST_BACKTRACE=full cargo run
 ```
 
-## Para bugs de ownership/borrowing
+## For ownership/borrowing bugs
 
-- `cargo check` suele dar el diagnóstico principal.
-- `rust-analyzer` te marca errores al vuelo.
-- `dbg!` ayuda a seguir flujo y estados intermedios sin cambiar mucho código.
+- `cargo check` usually provides the main diagnosis.
 
-En tu programa actual, un primer paso útil sería poner breakpoint justo antes y después de `read_line` en main.rs, y observar `guess.len()`, `guess.capacity()` y `guess.as_ptr()` para ver cuándo cambia el buffer.
+- `rust-analyzer` highlights errors on the fly.
 
-Si quieres, te preparo una configuración mínima de VS Code (`launch.json`) para depurar este proyecto con un clic.
+- `dbg!` helps track flow and intermediate states without changing much code.
 
+In your current program, a useful first step would be to set breakpoints just before and after `read_line` in `main.rs`, and observe `guess.len()`, `guess.capacity()`, and `guess.as_ptr()` to see when the buffer changes.
+
+If you'd like, I can prepare a minimal VS Code configuration (`launch.json`) for you to debug this project with a single click.
