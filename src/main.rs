@@ -72,7 +72,7 @@ fn main() {
 
         print_guess_info!(guess);
 
-        println!("Comparing your guess {guess} with the secret number {secret_number} ...");
+        println!("  Comparing your guess {guess} with the secret number {secret_number} ...");
         // We can declare a variable with the same name as a previous variable, shadowing it.
         //This is useful when we want to transform a value but keep the same name.
         let guess = match guess.parse::<u32>() {
